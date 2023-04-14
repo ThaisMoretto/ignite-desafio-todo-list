@@ -12,23 +12,20 @@ export interface ItemProps {
 export interface ListItemProps {
   item: ItemProps;
   handleDone: (item: ItemProps) => void;
+  handleDelete: (item: ItemProps) => void;
 }
 
-export function ListItem({ item, handleDone }: ListItemProps) {
+export function ListItem({ item, handleDone, handleDelete }: ListItemProps) {
   const trashIcon = item.done
     ? require("../../assets/trash-false.png")
     : require("../../assets/trash-active.png");
-
-  function handleChange() {
-    handleDone(item);
-  }
 
   return (
     <View style={styles.content}>
       <Checkbox
         style={styles.checkbox}
         value={item.done}
-        onValueChange={handleChange}
+        onValueChange={() => handleDone(item)}
         color={item.done ? "#5E60CE" : "#4EA8DE"}
       />
       <Text
@@ -37,7 +34,11 @@ export function ListItem({ item, handleDone }: ListItemProps) {
         {item.title}
       </Text>
 
-      <TouchableOpacity style={styles.trashButton}>
+      <TouchableOpacity
+        disabled={item.done}
+        onPress={() => handleDelete(item)}
+        style={styles.trashButton}
+      >
         <Image source={trashIcon} />
       </TouchableOpacity>
     </View>

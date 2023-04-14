@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FlatList, View } from "react-native";
+import { Alert, FlatList, View } from "react-native";
 import { Counter, CounterType } from "../counter/Counter";
 import { EmptyList } from "../emptyList/EmptyList";
 import { Input } from "../input/Input";
@@ -8,37 +8,60 @@ import { ItemProps, ListItem } from "../listItem/ListItem";
 import { styles } from "./styles";
 
 export function List() {
-  const [list, setList] = useState<ItemProps[]>([
-    { title: "title", done: true },
-    { title: "title2", done: false },
-    { title: "title3", done: false },
-    { title: "title4", done: true },
-  ]);
+  const [list, setList] = useState<ItemProps[]>([]);
 
-  function handleDone(clickedItem: ItemProps) {
-    console.log("clicou ara marcar", clickedItem);
+  function handleAddTask(title: string) {
+    if (!title) {
+      return;
+    }
 
+    const taskAlreadyExists = list.find((item) => item.title === title);
+
+    if (taskAlreadyExists) {
+      return Alert.alert(
+        "Tarefa existente",
+        "Esta tarefa já existe na sua lista!"
+      );
+    }
+
+    const newTask: ItemProps = {
+      title,
+      done: false,
+    };
+
+    setList((prevState) => [...prevState, newTask]);
+  }
+
+  function handleDone({ title }: ItemProps) {
     setList(
       list.map((item) => {
-        if (item.title === clickedItem.title) {
-          item.done = !clickedItem.done;
+        if (item.title === title) {
+          item.done = !item.done;
         }
         return item;
       })
     );
-    // setar o done do item para true ou false
-    // passar essa func para o componente ListItem
+  }
+
+  function handleDelete({ title }: ItemProps) {
+    Alert.alert("Apagar tarefa", `Deseja realmente apagar a tarefa ${title}?`, [
+      {
+        text: "Sim",
+        onPress: () =>
+          setList((prevState) =>
+            prevState.filter((item) => item.title !== title)
+          ),
+      },
+      { text: "Não", style: "cancel" },
+    ]);
   }
 
   return (
     <View style={styles.contentList}>
-      <Input />
+      <Input handleAddTask={handleAddTask} />
 
       <View style={styles.titles}>
-        <Counter
-          text={CounterType.CREATED}
-          counter={list.filter((item) => item.done === false).length}
-        />
+        <Counter text={CounterType.CREATED} counter={list.length} />
         <Counter
           text={CounterType.DONE}
           counter={list.filter((item) => item.done === true).length}
@@ -53,7 +76,8 @@ export function List() {
             <ListItem
               key={item.title}
               item={item}
-              handleDone={() => handleDone(item)}
+              handleDone={handleDone}
+              handleDelete={handleDelete}
             />
           )}
           ListEmptyComponent={() => <EmptyList />}
